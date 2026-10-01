@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Manrope, Outfit } from "next/font/google";
+import { Background } from "@/components/Background";
+import { Header } from "@/components/Header";
 import { THEME_INIT_SCRIPT } from "@/design-system/react/theme";
 import "./globals.css";
 
@@ -12,8 +14,8 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TimeTrack",
-  description: "Ponto eletrônico para empresas.",
+  title: { default: "TimeTrack", template: "%s · TimeTrack" },
+  description: "Ponto eletrônico para empresas. O funcionário bate o ponto e o RH acompanha as horas.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -27,7 +29,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className="flex min-h-full flex-col font-sans">{children}</body>
+      <body className="isolate flex min-h-full flex-col font-sans">
+        <Background />
+        <Header />
+        <div className="flex flex-1 flex-col">{children}</div>
+        <footer className="mx-auto w-full max-w-6xl px-4 pb-6 pt-10 font-mono text-xs text-muted md:px-8">
+          TimeTrack · Sistema fictício para fins de estudo.
+        </footer>
+      </body>
     </html>
   );
 }

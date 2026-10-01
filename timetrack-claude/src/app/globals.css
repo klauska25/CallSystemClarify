@@ -6,4 +6,45 @@
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-outfit), var(--font-manrope), ui-sans-serif, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+
+  --color-tone-ok-bg: var(--tone-ok-bg);
+  --color-tone-ok-fg: var(--tone-ok-fg);
+  --color-tone-info-bg: var(--tone-info-bg);
+  --color-tone-info-fg: var(--tone-info-fg);
+  --color-tone-warn-bg: var(--tone-warn-bg);
+  --color-tone-warn-fg: var(--tone-warn-fg);
+  --color-tone-danger-bg: var(--tone-danger-bg);
+  --color-tone-danger-fg: var(--tone-danger-fg);
+  --color-tone-neutral-bg: var(--tone-neutral-bg);
+  --color-tone-neutral-fg: var(--tone-neutral-fg);
+}
+
+/* Tons de estado para etiquetas de status e prioridade.
+   O design system não define cores de estado e pede tokens novos,
+   sem reaproveitar as de categoria. Mesmo esquema das categorias:
+   Tailwind 100/800 no claro, 950 a 80% e 300 no escuro. */
+:root {
+  --tone-ok-bg: oklch(96.2% 0.044 156.743);
+  --tone-ok-fg: oklch(44.8% 0.119 151.328);
+  --tone-info-bg: oklch(95.1% 0.026 236.824);
+  --tone-info-fg: oklch(44.3% 0.11 240.79);
+  --tone-warn-bg: oklch(96.2% 0.059 95.617);
+  --tone-warn-fg: oklch(47.3% 0.137 46.201);
+  --tone-danger-bg: oklch(88.5% 0.062 18.334);
+  --tone-danger-fg: oklch(39.6% 0.141 25.723);
+  --tone-neutral-bg: oklch(92.3% 0.003 48.717);
+  --tone-neutral-fg: oklch(37.4% 0.01 67.558);
+}
+
+:root[data-theme="dark"] {
+  --tone-ok-bg: oklch(26.6% 0.065 152.934 / 0.8);
+  --tone-ok-fg: oklch(87.1% 0.15 154.449);
+  --tone-info-bg: oklch(29.3% 0.066 243.157 / 0.8);
+  --tone-info-fg: oklch(82.8% 0.111 230.318);
+  --tone-warn-bg: oklch(27.9% 0.077 45.635 / 0.8);
+  --tone-warn-fg: oklch(87.9% 0.169 91.605);
+  --tone-danger-bg: oklch(39.6% 0.141 25.723 / 0.6);
+  --tone-danger-fg: oklch(88.5% 0.062 18.334);
+  --tone-neutral-bg: oklch(26.8% 0.007 34.298 / 0.8);
+  --tone-neutral-fg: oklch(86.9% 0.005 56.366);
 }
