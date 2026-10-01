@@ -1,26 +1,10 @@
 import Link from "next/link";
+import { Clientes } from "@/components/produto/Clientes";
 import { DemoSemana } from "@/components/produto/DemoSemana";
+import { Numeros } from "@/components/produto/Numeros";
+import { Recursos } from "@/components/produto/Recursos";
 import { CHATBOT_URL } from "@/lib/links";
 import { ArrowRightIcon } from "@/design-system/react/icons";
-
-const recursos = [
-  {
-    titulo: "Ponto em um toque",
-    texto: "Entrada e saída registradas com a hora exata, pelo celular ou pelo computador.",
-  },
-  {
-    titulo: "Horas sempre em dia",
-    texto: "O RH vê quem chegou, quem saiu e quem esqueceu de bater a saída, sem esperar o fim do mês.",
-  },
-  {
-    titulo: "Integração com a folha",
-    texto: "As horas do mês vão direto para o sistema de folha de pagamento no fechamento.",
-  },
-  {
-    titulo: "Relatórios por equipe",
-    texto: "Compare horas previstas e trabalhadas por setor, por semana ou por mês.",
-  },
-];
 
 type Plano = {
   nome: string;
@@ -95,19 +79,9 @@ export default function ProdutoPage() {
         </div>
       </section>
 
-      <section aria-labelledby="titulo-recursos" className="px-0 md:px-0">
-        <h2 id="titulo-recursos" className="sr-only">
-          O que o TimeTrack faz
-        </h2>
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {recursos.map(({ titulo, texto }) => (
-            <li key={titulo} className="glass-soft rounded-2xl p-5">
-              <h3 className="font-display text-lg font-medium text-fg">{titulo}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{texto}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <Clientes />
+      <Numeros />
+      <Recursos />
 
       <section id="demonstracao" aria-labelledby="titulo-demo" className="scroll-mt-28 pt-16 md:pt-24">
         <div className="flex flex-col gap-4 px-2 md:flex-row md:items-end md:justify-between md:px-5">

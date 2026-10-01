@@ -4,6 +4,13 @@
 /* Bolinha do cursor: branca a 60%, com mix-blend-mode difference (igual nos dois temas). */
 @theme {
   --color-cursor: rgb(255 255 255 / 0.6);
+
+  /* Faixa de clientes: a lista aparece duas vezes e anda metade da largura. */
+  --animate-marquee: marquee 40s linear infinite;
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
 }
 
 /* As fontes vêm do next/font (ver layout.tsx). */
