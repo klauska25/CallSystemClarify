@@ -1,0 +1,166 @@
+/* TimeTrack Suporte para Tailwind CSS 4.
+   Uso: no seu CSS global, depois de @import "tailwindcss";, importe este arquivo.
+   Gera classes como bg-brand, text-fg, text-muted, bg-surface, bg-neu, glass, neu-raised. */
+
+/* A variante dark segue o atributo data-theme no <html>. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Cores fixas, iguais nos dois temas. */
+@theme {
+  --color-brand: #a3e635;
+  --color-brand-hover: #bef264;
+  --color-brand-dark: #4d7c0f;
+  --color-ink: #0a0a0a;
+  --color-overlay: rgb(0 0 0 / 0.4);
+  --color-typing-dot: oklch(55.6% 0 none);
+
+  --radius-bubble: 22px;
+
+  --animate-fade-in: fade-in 450ms ease-out;
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
+/* Cores que mudam com o tema: os valores ficam nas variáveis abaixo. */
+@theme inline {
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-hover: var(--hover);
+  --color-accent-line: var(--accent-line);
+  --color-pattern-line: var(--pattern-line);
+  --color-glow: var(--glow);
+  --color-glass: var(--glass);
+  --color-glass-strong: var(--glass-strong);
+  --color-glass-border: var(--glass-border);
+  --color-glass-highlight: var(--glass-highlight);
+  --color-neu: var(--neu);
+  --color-category-acesso-bg: var(--category-acesso-bg);
+  --color-category-acesso-fg: var(--category-acesso-fg);
+  --color-category-dados-bg: var(--category-dados-bg);
+  --color-category-dados-fg: var(--category-dados-fg);
+  --color-category-integracao-bg: var(--category-integracao-bg);
+  --color-category-integracao-fg: var(--category-integracao-fg);
+  --color-category-duvida-bg: var(--category-duvida-bg);
+  --color-category-duvida-fg: var(--category-duvida-fg);
+  --color-category-bug-bg: var(--category-bug-bg);
+  --color-category-bug-fg: var(--category-bug-fg);
+  --color-category-feature-bg: var(--category-feature-bg);
+  --color-category-feature-fg: var(--category-feature-fg);
+
+  --font-sans: Manrope, ui-sans-serif, system-ui, sans-serif;
+  --font-display: Outfit, Manrope, ui-sans-serif, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+:root {
+  color-scheme: light;
+  --surface: #ebebe7;
+  --line: #deded9;
+  --fg: #141414;
+  --muted: #6b6b66;
+  --hover: rgb(0 0 0 / 0.04);
+  --accent-line: #65a30d;
+  --pattern-line: rgb(77 124 15 / 0.14);
+  --glow: rgb(163 230 53 / 0.28);
+  --glass: rgb(255 255 255 / 0.55);
+  --glass-strong: rgb(250 250 248 / 0.9);
+  --glass-border: rgb(255 255 255 / 0.75);
+  --glass-highlight: rgb(255 255 255 / 0.9);
+  --neu: rgb(246 246 243 / 0.85);
+  --category-acesso-bg: oklch(93.6% 0.032 17.717);
+  --category-acesso-fg: oklch(44.4% 0.177 26.899);
+  --category-dados-bg: oklch(93.2% 0.032 255.585);
+  --category-dados-fg: oklch(42.4% 0.199 265.638);
+  --category-integracao-bg: oklch(94.3% 0.029 294.588);
+  --category-integracao-fg: oklch(43.2% 0.232 292.759);
+  --category-duvida-bg: oklch(95% 0.052 163.051);
+  --category-duvida-fg: oklch(43.2% 0.095 166.913);
+  --category-bug-bg: oklch(95.4% 0.038 75.164);
+  --category-bug-fg: oklch(47% 0.157 37.304);
+  --category-feature-bg: oklch(94.8% 0.028 342.258);
+  --category-feature-fg: oklch(45.9% 0.187 3.815);
+  --glass-shadow: 0 24px 60px -28px rgb(0 0 0 / 0.22);
+  --glass-soft-shadow: 0 8px 22px -14px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.9);
+  --neu-raised: -5px -5px 12px rgb(255 255 255 / 0.85), 5px 5px 14px rgb(0 0 0 / 0.09);
+  --neu-inset: inset 3px 3px 7px rgb(0 0 0 / 0.08), inset -3px -3px 7px rgb(255 255 255 / 0.9);
+  --glow-brand: 0 10px 26px -12px rgb(163 230 53 / 0.65), inset 0 1px 0 rgb(255 255 255 / 0.45);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface: #0c0c0c;
+  --line: #292929;
+  --fg: #f5f5f5;
+  --muted: #9a9a9a;
+  --hover: rgb(255 255 255 / 0.05);
+  --accent-line: #a3e635;
+  --pattern-line: rgb(163 230 53 / 0.13);
+  --glow: rgb(163 230 53 / 0.11);
+  --glass: rgb(26 26 26 / 0.55);
+  --glass-strong: rgb(22 22 22 / 0.92);
+  --glass-border: rgb(255 255 255 / 0.08);
+  --glass-highlight: rgb(255 255 255 / 0.07);
+  --neu: rgb(36 36 36 / 0.7);
+  --category-acesso-bg: oklch(25.8% 0.092 26.042 / 0.8);
+  --category-acesso-fg: oklch(80.8% 0.114 19.571);
+  --category-dados-bg: oklch(28.2% 0.091 267.935 / 0.8);
+  --category-dados-fg: oklch(80.9% 0.105 251.813);
+  --category-integracao-bg: oklch(28.3% 0.141 291.089 / 0.8);
+  --category-integracao-fg: oklch(81.1% 0.111 293.571);
+  --category-duvida-bg: oklch(26.2% 0.051 172.552 / 0.8);
+  --category-duvida-fg: oklch(84.5% 0.143 164.978);
+  --category-bug-bg: oklch(26.6% 0.079 36.259 / 0.8);
+  --category-bug-fg: oklch(83.7% 0.128 66.29);
+  --category-feature-bg: oklch(28.4% 0.109 3.907 / 0.8);
+  --category-feature-fg: oklch(82.3% 0.12 346.018);
+  --glass-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.8);
+  --glass-soft-shadow: 0 8px 22px -14px rgb(0 0 0 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.07);
+  --neu-raised: -3px -3px 8px rgb(255 255 255 / 0.035), 5px 5px 14px rgb(0 0 0 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.05);
+  --neu-inset: inset 3px 3px 8px rgb(0 0 0 / 0.55), inset -2px -2px 6px rgb(255 255 255 / 0.04);
+  --glow-brand: 0 10px 26px -12px rgb(163 230 53 / 0.65), inset 0 1px 0 rgb(255 255 255 / 0.45);
+}
+
+/* Painel de vidro fosco (barra lateral, topo, campo de mensagem). */
+@utility glass {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-highlight);
+}
+
+/* Vidro mais leve para elementos pequenos (balões e sugestões). */
+@utility glass-soft {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-soft-shadow);
+}
+
+@utility neu-raised {
+  box-shadow: var(--neu-raised);
+}
+
+@utility neu-inset {
+  box-shadow: var(--neu-inset);
+}
+
+/* Brilho verde dos elementos principais (balão de quem pergunta, botão Enviar). */
+@utility glow-brand {
+  box-shadow: var(--glow-brand);
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+body {
+  background: var(--surface);
+  color: var(--fg);
+}

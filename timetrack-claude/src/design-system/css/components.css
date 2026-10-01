@@ -1,0 +1,213 @@
+/* TimeTrack Suporte: folha estática que reproduz as classes Tailwind do app.
+   O app real usa Tailwind 4 (src/app/globals.css); isto serve para previews e para quem
+   for consumir o sistema sem Tailwind. Cada regra cita a classe de origem. */
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Utilitários copiados de globals.css. */
+.glass {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-highlight);
+}
+.glass-soft {
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-soft-shadow);
+}
+.neu-raised { box-shadow: var(--neu-raised); }
+.neu-inset { box-shadow: var(--neu-inset); }
+.glow-brand { box-shadow: var(--glow-brand); }
+
+.tt-icon { display: block; width: 20px; height: 20px; flex-shrink: 0; }
+.tt-icon--sm { width: 16px; height: 16px; }
+
+/* Botão de ícone sem fundo: menu, fechar, limpar busca. (rounded-full p-1.5 text-muted hover:bg-hover) */
+.tt-icon-button {
+  display: grid; place-items: center; padding: var(--space-1\.5);
+  border: 0; border-radius: var(--radius-full); background: transparent;
+  color: var(--muted); cursor: pointer; transition: background-color 150ms, color 150ms;
+}
+.tt-icon-button:hover { background: var(--hover); color: var(--fg); }
+
+/* Botão redondo em relevo: alternar tema. (neu-raised size-9 rounded-full bg-neu) */
+.tt-round-button {
+  display: grid; place-items: center; width: var(--size-icon-button); height: var(--size-icon-button);
+  flex-shrink: 0; border: 0; border-radius: var(--radius-full); background: var(--neu);
+  box-shadow: var(--neu-raised); color: var(--muted); cursor: pointer; transition: color 150ms;
+}
+.tt-round-button:hover { color: var(--fg); }
+.tt-round-button:active { box-shadow: var(--neu-inset); }
+
+:where(.tt-icon-button, .tt-round-button, .tt-button-new, .tt-send, .tt-suggestion, .tt-list-item):focus-visible {
+  outline: 2px solid var(--accent-line);
+}
+:where(.tt-button-new, .tt-send, .tt-suggestion):focus-visible { outline-offset: 2px; }
+
+/* Etiqueta de categoria. (rounded-full px-3 py-0.5 text-xs font-medium) */
+.tt-badge {
+  display: inline-flex; align-items: center; flex-shrink: 0;
+  padding: 2px var(--space-3); border-radius: var(--radius-full);
+  font-size: 12px; line-height: 16px; font-weight: 500;
+}
+.tt-badge--acesso { background: var(--category-acesso-bg); color: var(--category-acesso-fg); }
+.tt-badge--dados { background: var(--category-dados-bg); color: var(--category-dados-fg); }
+.tt-badge--integracao { background: var(--category-integracao-bg); color: var(--category-integracao-fg); }
+.tt-badge--duvida { background: var(--category-duvida-bg); color: var(--category-duvida-fg); }
+.tt-badge--bug { background: var(--category-bug-bg); color: var(--category-bug-fg); }
+.tt-badge--feature { background: var(--category-feature-bg); color: var(--category-feature-fg); }
+
+/* Balões de mensagem. */
+.tt-message { display: flex; flex-direction: column; align-items: flex-start; }
+.tt-message--user { align-items: flex-end; }
+.tt-bubble {
+  max-width: 70%; padding: var(--space-3) var(--space-4); border-radius: var(--radius-bubble);
+  font-size: 15px; line-height: 1.625; overflow-wrap: break-word; white-space: pre-wrap; color: var(--fg);
+}
+.tt-message--user .tt-bubble { background: var(--brand); color: var(--ink); box-shadow: var(--glow-brand); }
+.tt-message-meta {
+  margin: var(--space-1\.5) 0 0; padding: 0 4px;
+  font-family: var(--font-mono); font-size: 11px; line-height: 1.5; color: var(--muted);
+}
+
+/* Indicador de digitação. */
+.tt-typing { display: inline-flex; align-items: center; gap: var(--space-1); padding: var(--space-4); border-radius: var(--radius-bubble); }
+.tt-typing span {
+  width: 6px; height: 6px; border-radius: var(--radius-full); background: var(--typing-dot);
+  animation: tt-bounce 1s infinite;
+}
+.tt-typing span:nth-child(2) { animation-delay: 150ms; }
+.tt-typing span:nth-child(3) { animation-delay: 300ms; }
+/* Mesmo bounce do Tailwind. */
+@keyframes tt-bounce {
+  0%, 100% { transform: translateY(-25%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+  50% { transform: none; animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+}
+
+/* Campo de mensagem. */
+.tt-composer { width: 100%; max-width: var(--size-column); box-sizing: border-box; padding: var(--space-3); border-radius: var(--radius-3xl); }
+.tt-composer-row { display: flex; align-items: flex-end; gap: var(--space-2\.5); }
+.tt-field {
+  box-sizing: border-box; min-height: var(--size-control); flex: 1; min-width: 0; resize: none;
+  padding: var(--space-2\.5) var(--space-4); border: 1px solid transparent; border-radius: var(--radius-2xl);
+  background: var(--neu); box-shadow: var(--neu-inset); color: var(--fg);
+  font: 400 16px/24px var(--font-sans); outline: none; transition: border-color 150ms;
+}
+.tt-field::placeholder { color: var(--muted); }
+.tt-field:focus { border-color: color-mix(in srgb, var(--accent-line) 60%, transparent); }
+.tt-send {
+  display: flex; align-items: center; gap: var(--space-2); height: var(--size-control); flex-shrink: 0;
+  padding: 0 var(--space-6); border: 0; border-radius: var(--radius-full);
+  background: var(--brand); color: var(--ink); box-shadow: var(--glow-brand);
+  font: 700 14px/20px var(--font-sans); cursor: pointer; transition: background-color 150ms;
+}
+.tt-send:hover { background: var(--brand-hover); }
+.tt-send:disabled {
+  cursor: not-allowed; box-shadow: none;
+  background: color-mix(in srgb, var(--brand) 35%, transparent);
+  color: color-mix(in srgb, var(--ink) 55%, transparent);
+}
+.tt-hint { margin: var(--space-2) 0 0; padding: 0 var(--space-2); font-size: 12px; line-height: 16px; color: var(--muted); }
+
+/* Busca. */
+.tt-search { position: relative; }
+.tt-search > .tt-icon { position: absolute; top: 50%; left: var(--space-4); transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.tt-search input {
+  box-sizing: border-box; width: 100%; padding: var(--space-2\.5) 40px; border: 1px solid transparent;
+  border-radius: var(--radius-full); background: var(--neu); box-shadow: var(--neu-inset); color: var(--fg);
+  font: 400 14px/20px var(--font-sans); outline: none; -webkit-appearance: none; appearance: none;
+}
+.tt-search input::placeholder { color: var(--muted); }
+.tt-search input:focus { border-color: color-mix(in srgb, var(--accent-line) 60%, transparent); }
+.tt-search input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.tt-search .tt-icon-button { position: absolute; top: 50%; right: var(--space-2\.5); transform: translateY(-50%); width: 24px; height: 24px; padding: 0; }
+
+/* Item da lista de conversas. */
+.tt-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-1\.5); }
+.tt-list-item {
+  display: block; box-sizing: border-box; width: 100%; padding: var(--space-3\.5); border: 0; border-radius: var(--radius-2xl);
+  background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: background-color 200ms;
+}
+.tt-list-item:hover { background: var(--hover); }
+.tt-list-item[aria-current="true"] { background: var(--neu); box-shadow: var(--neu-raised); }
+.tt-list-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
+.tt-contact { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; line-height: 20px; font-weight: 700; color: var(--fg); }
+.tt-time { flex-shrink: 0; font-family: var(--font-mono); font-size: 12px; line-height: 16px; color: var(--muted); }
+.tt-preview { margin: 4px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; line-height: 20px; color: var(--muted); }
+.tt-list-item .tt-badge { margin-top: var(--space-2\.5); }
+
+/* Topo do chat. */
+.tt-header {
+  display: flex; align-items: center; gap: var(--space-3); height: 64px; flex-shrink: 0;
+  box-sizing: border-box; padding: 0 var(--space-6); border-radius: var(--radius-3xl);
+}
+.tt-header-title { display: flex; flex: 1; min-width: 0; align-items: center; gap: var(--space-3); }
+.tt-header h1 {
+  margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font: 500 18px/28px var(--font-display); color: var(--fg);
+}
+
+/* Sugestões do estado vazio. */
+.tt-empty-title { margin: 0; text-align: center; font: 500 24px/32px var(--font-display); color: var(--fg); }
+.tt-suggestions { list-style: none; margin: var(--space-6) 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--space-3); }
+.tt-suggestion {
+  box-sizing: border-box; width: 100%; height: 100%; padding: var(--space-3\.5) var(--space-4);
+  border-radius: var(--radius-2xl); color: var(--fg); font: 400 14px/1.375 var(--font-sans);
+  text-align: left; cursor: pointer; transition: transform 200ms;
+}
+.tt-suggestion:hover { transform: translateY(-2px); }
+
+/* Botão Nova conversa. */
+.tt-button-new {
+  display: flex; align-items: center; justify-content: center; gap: var(--space-2\.5); width: 100%;
+  padding: var(--space-3) var(--space-4); border: 0; border-radius: var(--radius-full);
+  background: var(--neu); box-shadow: var(--neu-raised); color: var(--fg);
+  font: 700 14px/20px var(--font-sans); cursor: pointer; transition: transform 200ms;
+}
+.tt-button-new:hover { transform: translateY(-1px); }
+.tt-button-new:active { transform: none; box-shadow: var(--neu-inset); }
+.tt-plus {
+  display: grid; place-items: center; width: var(--size-plus-badge); height: var(--size-plus-badge);
+  border-radius: var(--radius-full); background: var(--brand); color: var(--ink); box-shadow: var(--glow-brand);
+}
+
+/* Marca: TimeTrack + SUPORTE. */
+.tt-brand { display: flex; align-items: baseline; gap: var(--space-2\.5); margin: 0; }
+.tt-brand-name { font: 700 24px/32px var(--font-display); letter-spacing: -0.025em; color: var(--fg); }
+.tt-brand-label { font-size: 11px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+.tt-section-label {
+  margin: 0; padding: var(--space-5) var(--space-5) var(--space-2);
+  font: 400 11px/1.5 var(--font-mono); letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
+}
+
+/* Rodapé da conta. */
+.tt-account {
+  display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-3\.5);
+  border-radius: var(--radius-2xl); background: var(--neu); box-shadow: var(--neu-raised);
+}
+.tt-avatar {
+  display: grid; place-items: center; width: var(--size-avatar); height: var(--size-avatar); flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--accent-line) 40%, transparent); border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--brand) 15%, transparent); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25);
+  font: 600 14px/20px var(--font-display); color: var(--brand-dark);
+}
+[data-theme="dark"] .tt-avatar { color: var(--brand); }
+.tt-account-text { flex: 1; min-width: 0; }
+.tt-account-name { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; line-height: 20px; font-weight: 700; color: var(--fg); }
+.tt-account-sub { margin: 0; font-family: var(--font-mono); font-size: 12px; line-height: 16px; color: var(--muted); }
+.tt-account .tt-icon-button { width: var(--size-icon-button); height: var(--size-icon-button); padding: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tt-typing span { animation: none; }
+  .tt-suggestion, .tt-button-new { transition: none; }
+}

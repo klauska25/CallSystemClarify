@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import "../design-system/tailwind/timetrack.css";
+
+/* As fontes vêm do next/font (ver layout.tsx). */
+@theme inline {
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-outfit), var(--font-manrope), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
