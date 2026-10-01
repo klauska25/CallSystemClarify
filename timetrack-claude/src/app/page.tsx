@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DemoSemana } from "@/components/produto/DemoSemana";
 import { CHATBOT_URL } from "@/lib/links";
 import { ArrowRightIcon } from "@/design-system/react/icons";
 
@@ -106,6 +107,23 @@ export default function ProdutoPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section id="demonstracao" aria-labelledby="titulo-demo" className="scroll-mt-28 pt-16 md:pt-24">
+        <div className="flex flex-col gap-4 px-2 md:flex-row md:items-end md:justify-between md:px-5">
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">Demonstração</p>
+            <h2 id="titulo-demo" className="mt-3 max-w-xl font-display text-3xl font-medium tracking-tight text-fg md:text-4xl">
+              Veja a semana de cada funcionário em segundos.
+            </h2>
+          </div>
+          <p className="max-w-sm text-sm leading-relaxed text-muted">
+            Escolha alguém da equipe e passe o mouse nos dias. É assim que o RH vê o ponto no TimeTrack.
+          </p>
+        </div>
+        <div className="mt-8">
+          <DemoSemana />
+        </div>
       </section>
 
       <section id="planos" aria-labelledby="titulo-planos" className="scroll-mt-28 pt-16 md:pt-24">

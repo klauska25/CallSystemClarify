@@ -22,6 +22,9 @@
   --color-tone-danger-fg: var(--tone-danger-fg);
   --color-tone-neutral-bg: var(--tone-neutral-bg);
   --color-tone-neutral-fg: var(--tone-neutral-fg);
+
+  --color-chart-base: var(--chart-base);
+  --color-chart-extra: var(--chart-extra);
 }
 
 /* Tons de estado para etiquetas de status e prioridade.
@@ -39,6 +42,11 @@
   --tone-danger-fg: oklch(39.6% 0.141 25.723);
   --tone-neutral-bg: oklch(92.3% 0.003 48.717);
   --tone-neutral-fg: oklch(37.4% 0.01 67.558);
+
+  /* Gráfico da demonstração: horas na jornada (neutro) e extras (âmbar).
+     Validados com o script de paleta: separação para daltonismo e contraste >= 3:1. */
+  --chart-base: #8a8a83;
+  --chart-extra: #b45309;
 }
 
 :root[data-theme="dark"] {
@@ -52,4 +60,7 @@
   --tone-danger-fg: oklch(88.5% 0.062 18.334);
   --tone-neutral-bg: oklch(26.8% 0.007 34.298 / 0.8);
   --tone-neutral-fg: oklch(86.9% 0.005 56.366);
+
+  --chart-base: #6e6e6e;
+  --chart-extra: #cc7f0d;
 }
