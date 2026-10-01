@@ -1,6 +1,11 @@
 @import "tailwindcss";
 @import "../design-system/tailwind/timetrack.css";
 
+/* Bolinha do cursor: branca a 60%, com mix-blend-mode difference (igual nos dois temas). */
+@theme {
+  --color-cursor: rgb(255 255 255 / 0.6);
+}
+
 /* As fontes vêm do next/font (ver layout.tsx). */
 @theme inline {
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;

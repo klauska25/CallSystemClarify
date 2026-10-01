@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, Manrope, Outfit } from "next/font/google";
 import { Background } from "@/components/Background";
+import { CursorDot } from "@/components/CursorDot";
 import { Header } from "@/components/Header";
 import { THEME_INIT_SCRIPT } from "@/design-system/react/theme";
 import "./globals.css";
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <footer className="mx-auto w-full max-w-6xl px-4 pb-6 pt-10 font-mono text-xs text-muted md:px-8">
           TimeTrack · Sistema fictício para fins de estudo.
         </footer>
+        <CursorDot />
       </body>
     </html>
   );
