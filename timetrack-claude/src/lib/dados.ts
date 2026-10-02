@@ -60,7 +60,8 @@ export const usuarios: Usuario[] = [
     empresa: "Empresa Modelo Ltda",
     plano: "business",
     ultimoLogin: "2026-10-01T08:57:12-03:00",
-    statusConta: "ativa",
+    statusConta: "bloqueada",
+    motivoBloqueio: "5 tentativas de login com senha incorreta",
   },
   {
     id: "usr_002",

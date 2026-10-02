@@ -22,17 +22,19 @@ export function Painel({ usuarios, chamados, status }: Props) {
   const [aba, setAba] = useState<Aba>("usuarios");
   const [busca, setBusca] = useState("");
   const prefixo = useId();
-  const conexoes = useConexoes();
+  const conexoes = useListaDoCerebro<Conexao>("conexoes");
+  const chamadosDoBot = useListaDoCerebro<Chamado>("chamados");
+  const todosChamados = [...(chamadosDoBot.lista ?? []), ...chamados];
 
   const termo = busca.trim().toLowerCase();
   const usuariosFiltrados = usuarios.filter((u) => u.email.toLowerCase().includes(termo));
-  const chamadosFiltrados = chamados
+  const chamadosFiltrados = todosChamados
     .filter((c) => c.usuarioEmail.toLowerCase().includes(termo))
     .sort((a, b) => b.criadoEm.localeCompare(a.criadoEm));
 
   const totais: Record<Aba, number> = {
     usuarios: usuarios.length,
-    chamados: chamados.length,
+    chamados: todosChamados.length,
     status: status.componentes.length,
     conexoes: conexoes.lista?.length ?? 0,
   };
@@ -91,7 +93,7 @@ export function Painel({ usuarios, chamados, status }: Props) {
         <p className="mt-3 px-1 text-sm text-muted">
           {aba === "usuarios"
             ? `${usuariosFiltrados.length} de ${usuarios.length} usuários com "${busca.trim()}" no email.`
-            : `${chamadosFiltrados.length} de ${chamados.length} chamados com "${busca.trim()}" no email.`}
+            : `${chamadosFiltrados.length} de ${todosChamados.length} chamados com "${busca.trim()}" no email.`}
         </p>
       )}
 
@@ -250,23 +252,25 @@ function PainelStatus({ status }: { status: StatusSistema }) {
   );
 }
 
-type Conexao = { hora: string; cerebro: "gemini" | "regras"; mensagem: string };
-type EstadoConexoes = { lista: Conexao[] | null; falhou: boolean };
+// cerebro: "gemini", "regras" ou "ferramenta: <nome>".
+type Conexao = { hora: string; cerebro: string; mensagem: string };
+type EstadoLista<T> = { lista: T[] | null; falhou: boolean };
+type EstadoConexoes = EstadoLista<Conexao>;
 
 const INTERVALO_CONEXOES_MS = 5000;
 
-// Lê as chamadas recentes do cérebro do bot (/api/cerebro?conexoes=1) a cada 5 segundos.
-function useConexoes(): EstadoConexoes {
-  const [estado, setEstado] = useState<EstadoConexoes>({ lista: null, falhou: false });
+// Lê uma lista do cérebro do bot (/api/cerebro?conexoes=1 ou ?chamados=1) a cada 5 segundos.
+function useListaDoCerebro<T>(parametro: "conexoes" | "chamados"): EstadoLista<T> {
+  const [estado, setEstado] = useState<EstadoLista<T>>({ lista: null, falhou: false });
 
   useEffect(() => {
     let ativo = true;
 
     async function ler() {
       try {
-        const resposta = await fetch("/api/cerebro?conexoes=1", { cache: "no-store" });
+        const resposta = await fetch(`/api/cerebro?${parametro}=1`, { cache: "no-store" });
         if (!resposta.ok) throw new Error(String(resposta.status));
-        const lista = (await resposta.json()) as Conexao[];
+        const lista = (await resposta.json()) as T[];
         if (ativo) setEstado({ lista, falhou: false });
       } catch {
         if (ativo) setEstado((anterior) => ({ ...anterior, falhou: true }));
@@ -279,7 +283,7 @@ function useConexoes(): EstadoConexoes {
       ativo = false;
       clearInterval(intervalo);
     };
-  }, []);
+  }, [parametro]);
 
   return estado;
 }
@@ -322,8 +326,8 @@ function ListaConexoes({ lista, falhou }: EstadoConexoes) {
               <p className="mt-1 break-words text-sm text-fg">{c.mensagem || "(sem texto)"}</p>
             </div>
             <Etiqueta
-              rotulo={c.cerebro === "gemini" ? "Gemini" : "Regras"}
-              tom={c.cerebro === "gemini" ? "info" : "neutral"}
+              rotulo={c.cerebro === "gemini" ? "Gemini" : c.cerebro === "regras" ? "Regras" : c.cerebro.replace("ferramenta", "Ferramenta")}
+              tom={c.cerebro === "gemini" ? "info" : c.cerebro === "regras" ? "neutral" : "ok"}
             />
           </li>
         ))}

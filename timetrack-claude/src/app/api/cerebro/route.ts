@@ -1,14 +1,17 @@
 // Cérebro do chatbot de suporte do TimeTrack. Roda só no servidor.
-// Responde com o Gemini quando há GEMINI_API_KEY; sem chave, ou se o Gemini falhar, responde por regras.
+// Antes de tudo tenta as ferramentas (consultar conta, abrir chamado, nova senha, status, atendente).
+// Se nenhuma servir, responde com o Gemini quando há GEMINI_API_KEY; sem chave, ou se o Gemini falhar, por regras.
 import { usuarios, type Usuario } from "@/lib/dados";
 import { formatarDataHora } from "@/lib/formatar";
+import { agir, conversaDeTeste, listarChamadosCriados, respostaDaAcao, type Acao } from "@/lib/ferramentas";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 type Papel = "user" | "assistant";
 type Mensagem = { role: Papel; content: string };
-type Cerebro = "gemini" | "regras";
+// "gemini", "regras" ou "ferramenta: <nome>".
+type Cerebro = string;
 type Conexao = { hora: string; cerebro: Cerebro; mensagem: string };
 
 // Modelos tentados em ordem. O Google aposenta modelos e cada chave só enxerga alguns
@@ -79,6 +82,9 @@ export async function POST(request: Request) {
     return erro("Envie messages com pelo menos uma mensagem do usuário.", 400);
   }
 
+  const acao = agir(pedido.messages);
+  if (acao) return responderComAcao(acao, pedido.messages, false);
+
   return responder(pedido.messages, pedido.system, "text/event-stream", request.signal);
 }
 
@@ -89,12 +95,30 @@ export function GET(request: Request) {
     return Response.json(conexoes, { headers: { ...cors, "Cache-Control": "no-store" } });
   }
 
+  if (params.has("chamados")) {
+    return Response.json(listarChamadosCriados(), { headers: { ...cors, "Cache-Control": "no-store" } });
+  }
+
+  const teste = params.get("teste");
+  if (teste !== null && teste !== "1") {
+    const conversa = conversaDeTeste(teste);
+    const acao = conversa ? agir(conversa) : null;
+    if (conversa && acao) return responderComAcao(acao, conversa, true);
+  }
+
   if (params.has("teste")) {
     const mensagens: Mensagem[] = [{ role: "user", content: MENSAGEM_TESTE }];
     return responder(mensagens, SISTEMA_PADRAO, "text/plain; charset=utf-8", request.signal);
   }
 
   return erro("Use POST para conversar, ?teste=1 para testar ou ?conexoes=1 para ver as conexões.", 400);
+}
+
+function responderComAcao(acao: Acao, mensagens: Mensagem[], textoSimples: boolean) {
+  registrar(acao.ferramenta ? "ferramenta: " + acao.ferramenta : "regras", mensagens);
+  const resposta = respostaDaAcao(acao, textoSimples);
+  for (const [nome, valor] of Object.entries(cors)) resposta.headers.set(nome, valor);
+  return resposta;
 }
 
 function lerPedido(corpo: unknown): { messages: Mensagem[]; system: string } | null {
