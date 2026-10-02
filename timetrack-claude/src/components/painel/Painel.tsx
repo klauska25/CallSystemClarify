@@ -1,18 +1,19 @@
 "use client";
 
-import { useId, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Etiqueta, EtiquetaCategoria } from "@/components/Etiqueta";
 import { CloseIcon, SearchIcon } from "@/design-system/react/icons";
 import type { Chamado, StatusSistema, Usuario } from "@/lib/dados";
 import { formatarDataHora } from "@/lib/formatar";
 import { planos, prioridades, statusChamado, statusConta, statusOperacional } from "@/lib/rotulos";
 
-type Aba = "usuarios" | "chamados" | "status";
+type Aba = "usuarios" | "chamados" | "status" | "conexoes";
 
 const abas: { id: Aba; rotulo: string }[] = [
   { id: "usuarios", rotulo: "Usuários" },
   { id: "chamados", rotulo: "Chamados" },
   { id: "status", rotulo: "Status" },
+  { id: "conexoes", rotulo: "Conexões do bot" },
 ];
 
 type Props = { usuarios: Usuario[]; chamados: Chamado[]; status: StatusSistema };
@@ -21,6 +22,7 @@ export function Painel({ usuarios, chamados, status }: Props) {
   const [aba, setAba] = useState<Aba>("usuarios");
   const [busca, setBusca] = useState("");
   const prefixo = useId();
+  const conexoes = useConexoes();
 
   const termo = busca.trim().toLowerCase();
   const usuariosFiltrados = usuarios.filter((u) => u.email.toLowerCase().includes(termo));
@@ -32,7 +34,9 @@ export function Painel({ usuarios, chamados, status }: Props) {
     usuarios: usuarios.length,
     chamados: chamados.length,
     status: status.componentes.length,
+    conexoes: conexoes.lista?.length ?? 0,
   };
+  const temBusca = aba === "usuarios" || aba === "chamados";
 
   // Setas trocam de aba, como pede o padrão de abas acessíveis.
   function navegarComTeclado(evento: KeyboardEvent<HTMLDivElement>) {
@@ -56,7 +60,7 @@ export function Painel({ usuarios, chamados, status }: Props) {
           role="tablist"
           aria-label="Seções do painel"
           onKeyDown={navegarComTeclado}
-          className="neu-inset flex rounded-full bg-neu p-1"
+          className="neu-inset grid grid-cols-2 gap-1 rounded-3xl bg-neu p-1 md:flex md:gap-0 md:rounded-full"
         >
           {abas.map(({ id, rotulo }) => {
             const ativa = aba === id;
@@ -70,7 +74,7 @@ export function Painel({ usuarios, chamados, status }: Props) {
                 aria-controls={`${prefixo}-painel`}
                 tabIndex={ativa ? 0 : -1}
                 onClick={() => setAba(id)}
-                className={`flex h-9 flex-1 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-accent-line md:flex-none ${
+                className={`flex h-9 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-accent-line md:flex-none ${
                   ativa ? "neu-raised bg-neu text-fg" : "text-muted hover:text-fg"
                 }`}
               >
@@ -82,8 +86,8 @@ export function Painel({ usuarios, chamados, status }: Props) {
         </div>
       </div>
 
-      {aba !== "status" && <CampoBusca valor={busca} aoMudar={setBusca} />}
-      {aba !== "status" && termo && (
+      {temBusca && <CampoBusca valor={busca} aoMudar={setBusca} />}
+      {temBusca && termo && (
         <p className="mt-3 px-1 text-sm text-muted">
           {aba === "usuarios"
             ? `${usuariosFiltrados.length} de ${usuarios.length} usuários com "${busca.trim()}" no email.`
@@ -100,6 +104,7 @@ export function Painel({ usuarios, chamados, status }: Props) {
         {aba === "usuarios" && <ListaUsuarios usuarios={usuariosFiltrados} />}
         {aba === "chamados" && <ListaChamados chamados={chamadosFiltrados} />}
         {aba === "status" && <PainelStatus status={status} />}
+        {aba === "conexoes" && <ListaConexoes {...conexoes} />}
       </div>
     </section>
   );
@@ -242,5 +247,87 @@ function PainelStatus({ status }: { status: StatusSistema }) {
         ))}
       </ul>
     </div>
+  );
+}
+
+type Conexao = { hora: string; cerebro: "gemini" | "regras"; mensagem: string };
+type EstadoConexoes = { lista: Conexao[] | null; falhou: boolean };
+
+const INTERVALO_CONEXOES_MS = 5000;
+
+// Lê as chamadas recentes do cérebro do bot (/api/cerebro?conexoes=1) a cada 5 segundos.
+function useConexoes(): EstadoConexoes {
+  const [estado, setEstado] = useState<EstadoConexoes>({ lista: null, falhou: false });
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function ler() {
+      try {
+        const resposta = await fetch("/api/cerebro?conexoes=1", { cache: "no-store" });
+        if (!resposta.ok) throw new Error(String(resposta.status));
+        const lista = (await resposta.json()) as Conexao[];
+        if (ativo) setEstado({ lista, falhou: false });
+      } catch {
+        if (ativo) setEstado((anterior) => ({ ...anterior, falhou: true }));
+      }
+    }
+
+    ler();
+    const intervalo = setInterval(ler, INTERVALO_CONEXOES_MS);
+    return () => {
+      ativo = false;
+      clearInterval(intervalo);
+    };
+  }, []);
+
+  return estado;
+}
+
+const horaComSegundos = new Intl.DateTimeFormat("pt-BR", {
+  timeZone: "America/Sao_Paulo",
+  day: "2-digit",
+  month: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
+
+function ListaConexoes({ lista, falhou }: EstadoConexoes) {
+  const aviso = falhou && (
+    <p className="px-1 pb-3 text-sm text-muted">Não consegui atualizar a lista agora. Tento de novo em 5 segundos.</p>
+  );
+
+  if (lista === null) return aviso || <Vazio texto="Carregando conversas…" />;
+  if (lista.length === 0) {
+    return (
+      <>
+        {aviso}
+        <Vazio texto="Nenhuma conversa ainda. Quando o seu bot falar, ela aparece aqui." />
+      </>
+    );
+  }
+
+  // Mais recente em cima.
+  const ordenada = [...lista].sort((a, b) => b.hora.localeCompare(a.hora));
+
+  return (
+    <>
+      {aviso}
+      <ul className="space-y-2">
+        {ordenada.map((c, i) => (
+          <li key={`${c.hora}-${i}`} className={`${cartao} flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between`}>
+            <div className="min-w-0">
+              <p className="font-mono text-xs text-muted">{horaComSegundos.format(new Date(c.hora)).replace(",", " às")}</p>
+              <p className="mt-1 break-words text-sm text-fg">{c.mensagem || "(sem texto)"}</p>
+            </div>
+            <Etiqueta
+              rotulo={c.cerebro === "gemini" ? "Gemini" : "Regras"}
+              tom={c.cerebro === "gemini" ? "info" : "neutral"}
+            />
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
