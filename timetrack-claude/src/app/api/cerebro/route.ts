@@ -11,8 +11,22 @@ type Mensagem = { role: Papel; content: string };
 type Cerebro = "gemini" | "regras";
 type Conexao = { hora: string; cerebro: Cerebro; mensagem: string };
 
-const MODELO = "gemini-2.5-flash";
-const URL_GEMINI = `https://generativelanguage.googleapis.com/v1beta/models/${MODELO}:streamGenerateContent?alt=sse`;
+// Modelos tentados em ordem. O Google aposenta modelos e cada chave só enxerga alguns
+// (o gemini-2.5-flash passou a responder 404), então, se um não existir para a chave
+// (404) ou estiver sem cota (429), tenta o próximo. GEMINI_MODEL, se definida na Vercel,
+// entra na frente da lista: dá para trocar de modelo sem mexer no código.
+const MODELOS_GEMINI = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-flash-latest"];
+const STATUS_TENTAR_OUTRO_MODELO = [404, 429];
+
+function modelosGemini(): string[] {
+  const escolhido = process.env.GEMINI_MODEL?.trim();
+  return escolhido ? [escolhido, ...MODELOS_GEMINI.filter((m) => m !== escolhido)] : MODELOS_GEMINI;
+}
+
+function urlGemini(modelo: string) {
+  return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelo)}:streamGenerateContent?alt=sse`;
+}
+
 const ESPERA_GEMINI_MS = 20_000; // até o Gemini começar a responder
 const LIMITE_GEMINI_MS = 45_000; // resposta inteira, com folga para as regras antes do maxDuration
 const MAX_MENSAGENS = 40;
@@ -188,27 +202,37 @@ async function responderComGemini(
   const esperaInicio = setTimeout(aoCancelar, ESPERA_GEMINI_MS);
   const limite = setTimeout(aoCancelar, LIMITE_GEMINI_MS);
 
+  const corpo = JSON.stringify({
+    systemInstruction: { parts: [{ text: sistema }] },
+    contents: mensagens.map((m) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    })),
+  });
+
   try {
-    const resposta = await fetch(URL_GEMINI, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": chave },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: sistema }] },
-        contents: mensagens.map((m) => ({
-          role: m.role === "assistant" ? "model" : "user",
-          parts: [{ text: m.content }],
-        })),
-      }),
-      signal: cancelar.signal,
-      cache: "no-store",
-    });
+    let resposta: Response | null = null;
+    for (const modelo of modelosGemini()) {
+      const tentativa = await fetch(urlGemini(modelo), {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": chave },
+        body: corpo,
+        signal: cancelar.signal,
+        cache: "no-store",
+      });
+      if (tentativa.ok && tentativa.body) {
+        resposta = tentativa;
+        break;
+      }
+
+      // Só o status: o corpo do erro pode repetir dados do pedido.
+      console.error(`[cerebro] Gemini (${modelo}) respondeu ${tentativa.status}`);
+      await tentativa.body?.cancel();
+      if (!STATUS_TENTAR_OUTRO_MODELO.includes(tentativa.status)) return "falhou";
+    }
     clearTimeout(esperaInicio);
 
-    if (!resposta.ok || !resposta.body) {
-      // Só o status: o corpo do erro pode repetir dados do pedido.
-      console.error(`[cerebro] Gemini respondeu ${resposta.status}`);
-      return "falhou";
-    }
+    if (!resposta?.body) return "falhou";
 
     const leitor = resposta.body.pipeThrough(new TextDecoderStream()).getReader();
     let pendente = "";
