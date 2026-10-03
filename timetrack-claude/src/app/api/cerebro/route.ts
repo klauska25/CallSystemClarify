@@ -4,6 +4,7 @@
 import { usuarios, type Usuario } from "@/lib/dados";
 import { formatarDataHora } from "@/lib/formatar";
 import { agir, conversaDeTeste, listarChamadosCriados, respostaDaAcao, type Acao } from "@/lib/ferramentas";
+import { modelosGemini, STATUS_TENTAR_OUTRO_MODELO } from "@/lib/gemini";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -13,19 +14,6 @@ type Mensagem = { role: Papel; content: string };
 // "gemini", "regras" ou "ferramenta: <nome>".
 type Cerebro = string;
 type Conexao = { hora: string; cerebro: Cerebro; mensagem: string };
-
-// Modelos tentados em ordem. O Google aposenta modelos e cada chave só enxerga alguns
-// (o gemini-2.5-flash passou a responder 404), então, se um não existir para a chave
-// (404), estiver sem cota (429) ou sobrecarregado no Google (500, 503, 504, comuns no
-// plano grátis em horário de pico), tenta o próximo. GEMINI_MODEL, se definida na Vercel,
-// entra na frente da lista: dá para trocar de modelo sem mexer no código.
-const MODELOS_GEMINI = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-flash-latest"];
-const STATUS_TENTAR_OUTRO_MODELO = [404, 429, 500, 503, 504];
-
-function modelosGemini(): string[] {
-  const escolhido = process.env.GEMINI_MODEL?.trim();
-  return escolhido ? [escolhido, ...MODELOS_GEMINI.filter((m) => m !== escolhido)] : MODELOS_GEMINI;
-}
 
 function urlGemini(modelo: string) {
   return `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelo)}:streamGenerateContent?alt=sse`;
