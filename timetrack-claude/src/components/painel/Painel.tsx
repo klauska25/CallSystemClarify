@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Etiqueta, EtiquetaCategoria } from "@/components/Etiqueta";
+import { Copiloto } from "@/components/painel/Copiloto";
 import { CloseIcon, SearchIcon } from "@/design-system/react/icons";
 import { agoraDoPainel, calcularSla, emAberto, listarAlertas, rotuloSla, type Alerta } from "@/lib/atencao";
 import type { Chamado, StatusSistema, Usuario } from "@/lib/dados";
@@ -222,6 +223,7 @@ function ListaChamados({ chamados, agora }: { chamados: Chamado[]; agora: number
               </div>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-fg">{c.descricao}</p>
+            <Copiloto chamado={c} />
           </li>
         );
       })}
