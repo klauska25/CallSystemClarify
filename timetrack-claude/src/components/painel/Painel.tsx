@@ -6,6 +6,7 @@ import { Copiloto } from "@/components/painel/Copiloto";
 import { CloseIcon, SearchIcon } from "@/design-system/react/icons";
 import { agoraDoPainel, calcularSla, emAberto, listarAlertas, rotuloSla, type Alerta } from "@/lib/atencao";
 import type { Chamado, StatusSistema, Usuario } from "@/lib/dados";
+import { baixarCsv, csvChamados, csvUsuarios } from "@/lib/exportar";
 import { formatarDataHora } from "@/lib/formatar";
 import { planos, prioridades, statusChamado, statusConta, statusOperacional } from "@/lib/rotulos";
 
@@ -44,6 +45,17 @@ export function Painel({ usuarios, chamados, status }: Props) {
     conexoes: conexoes.lista?.length ?? 0,
   };
   const temBusca = aba === "usuarios" || aba === "chamados";
+  const paraExportar = aba === "chamados" ? chamadosFiltrados.length : usuariosFiltrados.length;
+
+  // Exporta o que está na lista, já com o filtro da busca.
+  function exportar() {
+    const dia = new Date().toLocaleDateString("sv-SE");
+    if (aba === "chamados") {
+      baixarCsv(`timetrack-chamados-${dia}.csv`, csvChamados(chamadosFiltrados, usuarios, agoraDoPainel(status)));
+    } else {
+      baixarCsv(`timetrack-usuarios-${dia}.csv`, csvUsuarios(usuariosFiltrados));
+    }
+  }
 
   // Setas trocam de aba, como pede o padrão de abas acessíveis.
   function navegarComTeclado(evento: KeyboardEvent<HTMLDivElement>) {
@@ -93,7 +105,16 @@ export function Painel({ usuarios, chamados, status }: Props) {
         </div>
       </div>
 
-      {temBusca && <CampoBusca valor={busca} aoMudar={setBusca} />}
+      {temBusca && (
+        <div className="mt-5 flex gap-2">
+          <CampoBusca valor={busca} aoMudar={setBusca} />
+          <BotaoExportar
+            quantidade={paraExportar}
+            rotulo={aba === "chamados" ? "chamados" : "usuários"}
+            aoClicar={exportar}
+          />
+        </div>
+      )}
       {temBusca && termo && (
         <p className="mt-3 px-1 text-sm text-muted">
           {aba === "usuarios"
@@ -122,7 +143,7 @@ export function Painel({ usuarios, chamados, status }: Props) {
 
 function CampoBusca({ valor, aoMudar }: { valor: string; aoMudar: (v: string) => void }) {
   return (
-    <div className="relative mt-5">
+    <div className="relative min-w-0 flex-1">
       <SearchIcon className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted" />
       <input
         type="search"
@@ -147,6 +168,26 @@ function CampoBusca({ valor, aoMudar }: { valor: string; aoMudar: (v: string) =>
         </button>
       )}
     </div>
+  );
+}
+
+function BotaoExportar({ quantidade, rotulo, aoClicar }: { quantidade: number; rotulo: string; aoClicar: () => void }) {
+  const descricao = `Exportar ${quantidade} ${rotulo} para Excel`;
+  return (
+    <button
+      type="button"
+      onClick={aoClicar}
+      disabled={quantidade === 0}
+      aria-label={descricao}
+      title={descricao}
+      className="neu-raised flex h-11 shrink-0 items-center gap-2 rounded-full bg-neu px-4 text-sm font-bold text-fg transition hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-accent-line active:translate-y-0 active:neu-inset disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+    >
+      {/* Seta para baixo sobre a bandeja, no traço do design system. */}
+      <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+      </svg>
+      Exportar
+    </button>
   );
 }
 
