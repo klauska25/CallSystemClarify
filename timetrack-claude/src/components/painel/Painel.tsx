@@ -3,13 +3,15 @@
 import { useEffect, useId, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Etiqueta, EtiquetaCategoria } from "@/components/Etiqueta";
 import { CloseIcon, SearchIcon } from "@/design-system/react/icons";
+import { agoraDoPainel, calcularSla, emAberto, listarAlertas, rotuloSla, type Alerta } from "@/lib/atencao";
 import type { Chamado, StatusSistema, Usuario } from "@/lib/dados";
 import { formatarDataHora } from "@/lib/formatar";
 import { planos, prioridades, statusChamado, statusConta, statusOperacional } from "@/lib/rotulos";
 
-type Aba = "usuarios" | "chamados" | "status" | "conexoes";
+type Aba = "visao" | "usuarios" | "chamados" | "status" | "conexoes";
 
 const abas: { id: Aba; rotulo: string }[] = [
+  { id: "visao", rotulo: "Visão geral" },
   { id: "usuarios", rotulo: "Usuários" },
   { id: "chamados", rotulo: "Chamados" },
   { id: "status", rotulo: "Status" },
@@ -19,7 +21,7 @@ const abas: { id: Aba; rotulo: string }[] = [
 type Props = { usuarios: Usuario[]; chamados: Chamado[]; status: StatusSistema };
 
 export function Painel({ usuarios, chamados, status }: Props) {
-  const [aba, setAba] = useState<Aba>("usuarios");
+  const [aba, setAba] = useState<Aba>("visao");
   const [busca, setBusca] = useState("");
   const prefixo = useId();
   const conexoes = useListaDoCerebro<Conexao>("conexoes");
@@ -32,7 +34,9 @@ export function Painel({ usuarios, chamados, status }: Props) {
     .filter((c) => c.usuarioEmail.toLowerCase().includes(termo))
     .sort((a, b) => b.criadoEm.localeCompare(a.criadoEm));
 
+  const alertas = listarAlertas(todosChamados, usuarios, status);
   const totais: Record<Aba, number> = {
+    visao: alertas.length,
     usuarios: usuarios.length,
     chamados: todosChamados.length,
     status: status.componentes.length,
@@ -62,7 +66,7 @@ export function Painel({ usuarios, chamados, status }: Props) {
           role="tablist"
           aria-label="Seções do painel"
           onKeyDown={navegarComTeclado}
-          className="neu-inset grid grid-cols-2 gap-1 rounded-3xl bg-neu p-1 md:flex md:gap-0 md:rounded-full"
+          className="neu-inset grid grid-cols-2 gap-1 [&>button:first-child]:col-span-2 md:[&>button:first-child]:col-span-1 rounded-3xl bg-neu p-1 md:flex md:gap-0 md:rounded-full"
         >
           {abas.map(({ id, rotulo }) => {
             const ativa = aba === id;
@@ -103,8 +107,11 @@ export function Painel({ usuarios, chamados, status }: Props) {
         aria-labelledby={`${prefixo}-aba-${aba}`}
         className="mt-5"
       >
+        {aba === "visao" && (
+          <VisaoGeral chamados={todosChamados} usuarios={usuarios} status={status} alertas={alertas} irPara={setAba} />
+        )}
         {aba === "usuarios" && <ListaUsuarios usuarios={usuariosFiltrados} />}
-        {aba === "chamados" && <ListaChamados chamados={chamadosFiltrados} />}
+        {aba === "chamados" && <ListaChamados chamados={chamadosFiltrados} agora={agoraDoPainel(status)} />}
         {aba === "status" && <PainelStatus status={status} />}
         {aba === "conexoes" && <ListaConexoes {...conexoes} />}
       </div>
@@ -189,32 +196,103 @@ function Campo({ rotulo, children, className = "" }: { rotulo: string; children:
   );
 }
 
-function ListaChamados({ chamados }: { chamados: Chamado[] }) {
+function ListaChamados({ chamados, agora }: { chamados: Chamado[]; agora: number }) {
   if (chamados.length === 0) return <Vazio texto="Nenhum chamado encontrado." />;
 
   return (
     <ul className="space-y-2">
-      {chamados.map((c) => (
-        <li key={c.protocolo} className={cartao}>
-          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-            <div className="min-w-0">
-              <p className="font-mono text-sm font-medium text-fg">{c.protocolo}</p>
-              <p className="mt-0.5 flex flex-wrap gap-x-1.5 font-mono text-xs text-muted">
-                <span className="min-w-0 truncate">{c.usuarioEmail}</span>
-                <span aria-hidden className="hidden sm:inline">·</span>
-                <span>{formatarDataHora(c.criadoEm)}</span>
-              </p>
+      {chamados.map((c) => {
+        const sla = calcularSla(c, agora);
+        return (
+          <li key={c.protocolo} className={cartao}>
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <div className="min-w-0">
+                <p className="font-mono text-sm font-medium text-fg">{c.protocolo}</p>
+                <p className="mt-0.5 flex flex-wrap gap-x-1.5 font-mono text-xs text-muted">
+                  <span className="min-w-0 truncate">{c.usuarioEmail}</span>
+                  <span aria-hidden className="hidden sm:inline">·</span>
+                  <span>{formatarDataHora(c.criadoEm)}</span>
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-1.5 md:justify-end">
+                <EtiquetaCategoria categoria={c.categoria} />
+                <Etiqueta rotulo={`Prioridade ${prioridades[c.prioridade].rotulo.toLowerCase()}`} tom={prioridades[c.prioridade].tom} />
+                <Etiqueta {...statusChamado[c.status]} />
+                {sla && <Etiqueta {...rotuloSla(sla)} />}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-1.5 md:justify-end">
-              <EtiquetaCategoria categoria={c.categoria} />
-              <Etiqueta rotulo={`Prioridade ${prioridades[c.prioridade].rotulo.toLowerCase()}`} tom={prioridades[c.prioridade].tom} />
-              <Etiqueta {...statusChamado[c.status]} />
-            </div>
-          </div>
-          <p className="mt-3 text-sm leading-relaxed text-fg">{c.descricao}</p>
-        </li>
-      ))}
+            <p className="mt-3 text-sm leading-relaxed text-fg">{c.descricao}</p>
+          </li>
+        );
+      })}
     </ul>
+  );
+}
+
+type PropsVisao = {
+  chamados: Chamado[];
+  usuarios: Usuario[];
+  status: StatusSistema;
+  alertas: Alerta[];
+  irPara: (aba: Aba) => void;
+};
+
+// Primeira aba: números do dia e o que o suporte deve resolver primeiro.
+function VisaoGeral({ chamados, usuarios, status, alertas, irPara }: PropsVisao) {
+  const agora = agoraDoPainel(status);
+  const abertos = chamados.filter(emAberto);
+  const atrasados = abertos.filter((c) => calcularSla(c, agora)?.atrasado).length;
+  const numeros: { rotulo: string; valor: number; aba: Aba; alerta: boolean }[] = [
+    { rotulo: "Chamados em aberto", valor: abertos.length, aba: "chamados", alerta: false },
+    { rotulo: "Fora do prazo", valor: atrasados, aba: "chamados", alerta: atrasados > 0 },
+    { rotulo: "Contas bloqueadas", valor: usuarios.filter((u) => u.statusConta === "bloqueada").length, aba: "usuarios", alerta: false },
+    { rotulo: "Componentes com problema", valor: status.componentes.filter((c) => c.status !== "operacional").length, aba: "status", alerta: false },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <ul className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        {numeros.map((n) => (
+          <li key={n.rotulo}>
+            <button
+              type="button"
+              onClick={() => irPara(n.aba)}
+              className="neu-raised h-full w-full rounded-2xl bg-neu p-4 text-left transition hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-accent-line active:translate-y-0 active:neu-inset md:p-5"
+            >
+              <span className="block text-sm text-muted">{n.rotulo}</span>
+              <span className={`mt-1 block font-display text-3xl font-medium tabular-nums ${n.alerta ? "text-tone-danger-fg" : "text-fg"}`}>
+                {n.valor}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <div>
+        <h2 className="px-1 font-mono text-[11px] uppercase tracking-[0.2em] text-muted">Precisa de atenção agora</h2>
+        {alertas.length === 0 ? (
+          <Vazio texto="Nada pendente. Todos os chamados estão dentro do prazo." />
+        ) : (
+          <ol className="mt-3 space-y-2">
+            {alertas.map((a, i) => (
+              <li key={a.id} className={`${cartao} flex gap-4`}>
+                <span className="font-mono text-xs text-muted">{String(i + 1).padStart(2, "0")}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <p className="text-sm font-bold text-fg">{a.titulo}</p>
+                    <Etiqueta rotulo={a.tom === "danger" ? "Urgente" : "Atenção"} tom={a.tom} />
+                  </div>
+                  <p className="mt-1 text-sm leading-relaxed text-muted">{a.detalhe}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
+        <p className="mt-4 px-1 font-mono text-xs text-muted">
+          Prazos: crítica 4h, alta 8h, média 24h, baixa 72h. Contados até {formatarDataHora(status.atualizadoEm)}.
+        </p>
+      </div>
+    </div>
   );
 }
 
